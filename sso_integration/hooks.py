@@ -5,6 +5,8 @@ app_description = "Single Sign-On integration for Frappe/ERPNext v15"
 app_email = "abdullah.dheir@gmail.com"
 app_license = "MIT"
 
+modules_list = ["SSO Integration"]
+
 # Apps
 # ------------------
 

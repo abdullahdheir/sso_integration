@@ -1,0 +1,25 @@
+{
+  "name": "SSO Integration",
+  "title": "SSO Integration",
+  "icon": "key",
+  "color": "#4CAF50",
+  "shortcuts": [
+    {
+      "label": "SSO Settings",
+      "type": "DocType",
+      "link_to": "SSO Settings"
+    }
+  ],
+  "cards": [
+    {
+      "label": "Configuration",
+      "items": [
+        {
+          "type": "DocType",
+          "name": "SSO Settings",
+          "label": "SSO Settings"
+        }
+      ]
+    }
+  ]
+}

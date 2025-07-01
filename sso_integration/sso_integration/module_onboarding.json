@@ -1,0 +1,20 @@
+{
+  "name": "SSO Integration",
+  "category": "Administration",
+  "label": "SSO Integration",
+  "title": "SSO Integration",
+  "subtitle": "Configure Single Sign-On settings",
+  "success_message": "SSO Integration is ready to use!",
+  "docs_url": "",
+  "steps": [
+    {
+      "step": "Setup SSO Settings",
+      "label": "Configure SSO Settings",
+      "description": "Set up your SSO configuration",
+      "action": "Create Entry",
+      "action_label": "Add SSO Settings",
+      "link": "SSO Settings",
+      "is_complete": 0
+    }
+  ]
+}
