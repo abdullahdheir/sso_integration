@@ -1,9 +1,9 @@
 app_name = "sso_integration"
-app_title = "Sso Integration"
+app_title = "SSO Integration"
 app_publisher = "Eng. Abdullah Dheir"
-app_description = "Login into erpnext using email sso"
+app_description = "Single Sign-On integration for Frappe/ERPNext v15"
 app_email = "abdullah.dheir@gmail.com"
-app_license = "mit"
+app_license = "MIT"
 
 # Apps
 # ------------------
@@ -83,7 +83,7 @@ app_license = "mit"
 # ------------
 
 # before_install = "sso_integration.install.before_install"
-# after_install = "sso_integration.install.after_install"
+after_install = "sso_integration.install.after_install"
 
 # Uninstallation
 # ------------
@@ -137,34 +137,19 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "User": {
+        "before_insert": "sso_integration.sso_integration.user_events.before_insert",
+        "after_insert": "sso_integration.sso_integration.user_events.after_insert"
+    }
+}
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"sso_integration.tasks.all"
-# 	],
-# 	"daily": [
-# 		"sso_integration.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"sso_integration.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"sso_integration.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"sso_integration.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    # 'daily': ["sso_integration.sso_integration.tasks.cleanup_expired_tokens"]
+}
 
 # Testing
 # -------
@@ -235,10 +220,19 @@ app_license = "mit"
 # 	"sso_integration.auth.validate"
 # ]
 
+website_route_rules = [
+    {'from_route': '/api/method/sso_integration.api.sso_login', 'to_route': 'sso-login'},
+    {'from_route': '/api/method/sso_integration.api.validate_token',
+        'to_route': 'sso-validate-token'},
+    {'from_route': '/api/method/sso_integration.api.sso_logout',
+        'to_route': 'sso-logout'},
+    {'from_route': '/api/method/sso_integration.api.user_info',
+        'to_route': 'sso-user-info'},
+]
+
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
 
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
