@@ -2,20 +2,26 @@
   "doctype": "DocType",
   "name": "SSO Settings",
   "module": "SSO Integration",
-  "custom": 1,
-  "istable": 0,
-  "editable_grid": 0,
   "fields": [
-    { "fieldname": "enable_sso", "fieldtype": "Check", "label": "Enable SSO" },
+    {
+      "fieldname": "sso_name",
+      "fieldtype": "Data",
+      "label": "SSO Name",
+      "reqd": 1,
+      "unique": 1
+    },
     {
       "fieldname": "laravel_app_url",
       "fieldtype": "Data",
-      "label": "Laravel App URL"
+      "label": "Laravel App URL",
+      "reqd": 1,
+      "unique": 1
     },
     {
       "fieldname": "shared_secret_key",
       "fieldtype": "Password",
-      "label": "Shared Secret Key"
+      "label": "Shared Secret Key",
+      "reqd": 1
     },
     {
       "fieldname": "token_expiry_minutes",
@@ -80,6 +86,11 @@
       "fieldtype": "Check",
       "label": "Send Welcome Email",
       "default": 1
+    },
+    {
+      "fieldname": "source",
+      "fieldtype": "Data",
+      "label": "Source (optional, for token match)"
     }
   ],
   "permissions": [

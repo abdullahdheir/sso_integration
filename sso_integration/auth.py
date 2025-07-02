@@ -16,7 +16,7 @@ class SSOAuthError(Exception):
 
 def log_sso_event(email, status, message, data=None):
     """Log SSO attempts for auditing and debugging."""
-    if frappe.db.get_single_value('SSO Settings', 'enable_logging'):
+    if frappe.db.count('SSO Settings') > 0:
         frappe.logger('sso_integration').info({
             'email': email,
             'status': status,
@@ -25,8 +25,22 @@ def log_sso_event(email, status, message, data=None):
         })
 
 
-def get_sso_settings():
-    return frappe.get_single('SSO Settings')
+def get_sso_settings_from_request():
+    request = frappe.local.request
+    laravel_url = request.headers.get(
+        'Origin') or request.headers.get('Referer')
+    if not laravel_url:
+        raise SSOAuthError(
+            _('Could not determine Laravel App URL from request headers.'))
+    # Optionally, strip path/query if needed
+    laravel_url = laravel_url.split('?')[0].rstrip('/')
+    filters = {'laravel_app_url': laravel_url}
+    sso_settings = frappe.get_all(
+        'SSO Settings', filters=filters, fields=['name'], limit=1)
+    if not sso_settings:
+        raise SSOAuthError(
+            _('No matching SSO Settings found for this Laravel App URL: {}').format(laravel_url))
+    return frappe.get_doc('SSO Settings', sso_settings[0].name)
 
 
 def constant_time_compare(val1, val2):
@@ -34,9 +48,9 @@ def constant_time_compare(val1, val2):
 
 
 def validate_token(token, signature, ip=None):
-    settings = get_sso_settings()
+    settings = get_sso_settings_from_request()
     secret = get_decrypted_password(
-        'SSO Settings', 'SSO Settings', 'shared_secret_key', raise_exception=True)
+        'SSO Settings', settings.name, 'shared_secret_key', raise_exception=True)
     expected_sig = hmac.new(
         secret.encode(), token.encode(), hashlib.sha256).hexdigest()
     if not constant_time_compare(signature, expected_sig):
@@ -54,7 +68,7 @@ def validate_token(token, signature, ip=None):
         settings.allowed_email_domains or '').split(',') if x.strip()]
     if allowed_domains and not any(payload['email'].lower().endswith('@'+d) for d in allowed_domains):
         raise SSOAuthError(_('Email domain not allowed.'))
-    return payload
+    return payload, settings
 
 
 def get_or_create_user(payload, settings):
@@ -144,10 +158,7 @@ def login_user(user):
 
 def sso_authenticate(token, signature, ip=None):
     try:
-        settings = get_sso_settings()
-        if not settings.enable_sso:
-            raise SSOAuthError(_('SSO is disabled.'))
-        payload = validate_token(token, signature, ip)
+        payload, settings = validate_token(token, signature, ip)
         user = get_or_create_user(payload, settings)
         create_employee_if_needed(user, payload, settings)
         assign_integrations(user, payload, settings)

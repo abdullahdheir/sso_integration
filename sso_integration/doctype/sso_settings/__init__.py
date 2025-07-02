@@ -1,1 +1,0 @@
-# SSO Settings DocType package
