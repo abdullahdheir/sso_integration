@@ -16,11 +16,12 @@ def sso_login(token, signature):
         payload, settings = validate_token(
             token, signature, frappe.local.request_ip)
         sso_email = payload['email'].lower()
-        if current_user and current_user != 'Guest' and current_user.email != sso_email:
+        if not current_user or current_user == 'Guest' or current_user.email != sso_email:
             # Logout the current user
             LoginManager().logout()
-        user, settings = sso_authenticate(
-            token, signature, frappe.local.request_ip, return_settings=True)
+            user, settings = sso_authenticate(
+                token, signature, frappe.local.request_ip, return_settings=True)
+
         redirect_url = settings.redirect_after_login or '/app'
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = redirect_url
