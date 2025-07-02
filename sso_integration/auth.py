@@ -27,21 +27,37 @@ def log_sso_event(email, status, message, data=None):
 
 def get_sso_settings_from_request():
     request = frappe.local.request
-    laravel_url = request.headers.get(
-        'Origin') or request.headers.get('Referer')
+    frappe.logger('sso_integration').info(
+        {'headers': dict(request.headers), 'form_dict': dict(frappe.local.form_dict)})
+    laravel_url = request.headers.get('Origin')
+    frappe.logger('sso_integration').info(
+        {'step': 'Origin header', 'laravel_url': laravel_url})
     if not laravel_url:
-        # Fallback to query parameter
+        laravel_url = request.headers.get('Referer')
+        frappe.logger('sso_integration').info(
+            {'step': 'Referer header', 'laravel_url': laravel_url})
+    if not laravel_url:
         laravel_url = frappe.local.form_dict.get('laravel_app_url')
+        frappe.logger('sso_integration').info(
+            {'step': 'Query param', 'laravel_url': laravel_url})
     if laravel_url and laravel_url.startswith('"') and laravel_url.endswith('"'):
         laravel_url = laravel_url[1:-1]
+        frappe.logger('sso_integration').info(
+            {'step': 'Stripped quotes', 'laravel_url': laravel_url})
     if not laravel_url:
+        frappe.logger('sso_integration').error(
+            {'error': 'Could not determine Laravel App URL from request headers or query string.'})
         raise SSOAuthError(
             _('Could not determine Laravel App URL from request headers or query string.'))
     laravel_url = laravel_url.split('?')[0].rstrip('/')
+    frappe.logger('sso_integration').info(
+        {'step': 'Final laravel_url', 'laravel_url': laravel_url})
     filters = {'laravel_app_url': laravel_url}
     sso_settings = frappe.get_all(
         'SSO Settings', filters=filters, fields=['name'], limit=1)
     if not sso_settings:
+        frappe.logger('sso_integration').error(
+            {'error': 'No matching SSO Settings found', 'laravel_url': laravel_url})
         raise SSOAuthError(
             _('No matching SSO Settings found for this Laravel App URL: {}').format(laravel_url))
     return frappe.get_doc('SSO Settings', sso_settings[0].name)
@@ -112,6 +128,11 @@ def create_employee_if_needed(user, payload, settings):
     emp.department = payload.get('department')
     emp.designation = payload.get('designation')
     emp.status = 'Active'
+    emp.first_name = user.full_name or user.email
+    emp.gender = payload.get('gender', 'Other')
+    emp.date_of_birth = payload.get('date_of_birth', '2000-01-01')
+    emp.date_of_joining = payload.get(
+        'date_of_joining', frappe.utils.nowdate())
     emp.insert(ignore_permissions=True)
     frappe.db.commit()
 
