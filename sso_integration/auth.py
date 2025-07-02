@@ -171,16 +171,7 @@ def assign_integrations(user, payload, settings):
 
 
 def login_user(user, password=None):
-    login_manager = LoginManager()
-    if password:
-        login_manager.authenticate(user=user.email, pwd=password)
-    else:
-        login_manager.authenticate(user=user.email)
-    login_manager.post_login()
-    frappe.local.login_manager = login_manager
-    frappe.local.session.user = user.email
-    frappe.local.session.sid = frappe.session.sid
-    frappe.local.session.data['user'] = user.email
+    frappe.set_user(user.email)
     frappe.local.session.data['user_type'] = user.user_type
     frappe.local.session.data['full_name'] = user.full_name
     frappe.db.commit()
