@@ -16,7 +16,7 @@ def sso_login(token, signature):
         payload, settings = validate_token(
             token, signature, frappe.local.request_ip)
         sso_email = payload['email'].lower()
-        if not current_user or current_user == 'Guest' or current_user.email != sso_email:
+        if current_user != sso_email:
             # Logout the current user
             LoginManager().logout()
             user, settings = sso_authenticate(
