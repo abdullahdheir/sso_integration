@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.utils.response import build_response
 from .auth import sso_authenticate, SSOAuthError, validate_token
+from frappe.auth import LoginManager
 import json
 
 
@@ -17,9 +18,7 @@ def sso_login(token, signature):
         sso_email = payload['email'].lower()
         if current_user and current_user != 'Guest' and current_user.lower() != sso_email:
             # Logout the current user
-            from frappe.auth import LoginManager
             LoginManager().logout()
-            frappe.set_user(sso_email)
         user, settings = sso_authenticate(
             token, signature, frappe.local.request_ip, return_settings=True)
         redirect_url = settings.redirect_after_login or '/app'
