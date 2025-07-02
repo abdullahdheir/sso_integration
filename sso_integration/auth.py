@@ -32,6 +32,8 @@ def get_sso_settings_from_request():
     if not laravel_url:
         # Fallback to query parameter
         laravel_url = frappe.local.form_dict.get('laravel_app_url')
+    if laravel_url and laravel_url.startswith('"') and laravel_url.endswith('"'):
+        laravel_url = laravel_url[1:-1]
     if not laravel_url:
         raise SSOAuthError(
             _('Could not determine Laravel App URL from request headers or query string.'))
