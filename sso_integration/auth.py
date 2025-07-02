@@ -96,7 +96,7 @@ def get_or_create_user(payload, settings):
     email = payload['email'].lower()
     user = frappe.db.get('User', {'email': email})
     if user:
-        return user
+        return user, None  # No new password
     if not settings.auto_create_users:
         raise SSOAuthError(
             _('User does not exist and auto-creation is disabled.'))
@@ -105,13 +105,14 @@ def get_or_create_user(payload, settings):
     user_doc.first_name = payload.get('full_name', email.split('@')[0])
     user_doc.user_type = settings.default_user_type or 'System User'
     user_doc.enabled = 1
-    user_doc.new_password = secrets.token_urlsafe(16)
+    random_password = secrets.token_urlsafe(16)
+    user_doc.new_password = random_password
     user_doc.send_welcome_email = cint(settings.send_welcome_email)
     user_doc.insert(ignore_permissions=True)
     if settings.default_role:
         user_doc.add_roles(settings.default_role)
     frappe.db.commit()
-    return user_doc
+    return user_doc, random_password
 
 
 def create_employee_if_needed(user, payload, settings):
@@ -169,9 +170,12 @@ def assign_integrations(user, payload, settings):
             pass
 
 
-def login_user(user):
+def login_user(user, password=None):
     login_manager = LoginManager()
-    login_manager.authenticate(user=user.email)
+    if password:
+        login_manager.authenticate(user=user.email, pwd=password)
+    else:
+        login_manager.authenticate(user=user.email)
     login_manager.post_login()
     frappe.local.login_manager = login_manager
     frappe.local.session.user = user.email
@@ -185,16 +189,16 @@ def login_user(user):
 def sso_authenticate(token, signature, ip=None):
     try:
         payload, settings = validate_token(token, signature, ip)
-        user = get_or_create_user(payload, settings)
+        user, password = get_or_create_user(payload, settings)
         create_employee_if_needed(user, payload, settings)
         assign_integrations(user, payload, settings)
-        login_user(user)
+        login_user(user, password)
         log_sso_event(user.email, 'success', 'SSO login successful', payload)
         return user
     except Exception as e:
         tb = traceback.format_exc()
         log_sso_event(payload.get('email', 'unknown') if 'payload' in locals(
-        ) else 'unknown', 'failure', f'{str(e)}\\n{tb}')
+        ) else 'unknown', 'failure', f'{str(e)}\n{tb}')
         frappe.logger('sso_integration').error(
             {'error': str(e), 'traceback': tb})
-        raise e
+        raise
