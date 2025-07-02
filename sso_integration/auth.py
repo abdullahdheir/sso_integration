@@ -185,7 +185,7 @@ def sso_authenticate(token, signature, ip=None):
     try:
         payload, settings = validate_token(token, signature, ip)
         user = get_or_create_user(payload, settings)
-        create_employee_if_needed(user, payload, settings)
+        #create_employee_if_needed(user, payload, settings)
         assign_integrations(user, payload, settings)
         login_user(user)
         log_sso_event(user.email, 'success', 'SSO login successful', payload)
