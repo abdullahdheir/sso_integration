@@ -7,18 +7,14 @@ import json
 
 @frappe.whitelist(allow_guest=True)
 def sso_login(token, signature):
-    """Main SSO login handler. Returns session info or error."""
+    """Main SSO login handler. Redirects to app after successful login."""
     try:
-        user = sso_authenticate(token, signature, frappe.local.request_ip)
-        redirect_url = frappe.db.get_single_value(
-            'SSO Settings', 'redirect_after_login') or '/app'
-        return {
-            'status': 'success',
-            'message': _('Login successful.'),
-            'redirect': redirect_url,
-            'sid': frappe.session.sid,
-            'user': user.email
-        }
+        user, settings = sso_authenticate(
+            token, signature, frappe.local.request_ip, return_settings=True)
+        redirect_url = settings.redirect_after_login or '/app'
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = redirect_url
+        return
     except SSOAuthError as e:
         frappe.local.response['http_status_code'] = 401
         return {

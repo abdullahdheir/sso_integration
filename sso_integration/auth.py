@@ -177,7 +177,7 @@ def login_user(user, password=None):
     frappe.db.commit()
 
 
-def sso_authenticate(token, signature, ip=None):
+def sso_authenticate(token, signature, ip=None, return_settings=False):
     try:
         payload, settings = validate_token(token, signature, ip)
         user, password = get_or_create_user(payload, settings)
@@ -185,6 +185,8 @@ def sso_authenticate(token, signature, ip=None):
         assign_integrations(user, payload, settings)
         login_user(user, password)
         log_sso_event(user.email, 'success', 'SSO login successful', payload)
+        if return_settings:
+            return user, settings
         return user
     except Exception as e:
         tb = traceback.format_exc()
