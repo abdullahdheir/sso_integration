@@ -10,18 +10,20 @@ import json
 def sso_login(token, signature):
     """Main SSO login handler. Redirects to app after successful login."""
     try:
-        # Check if a user is already logged in
+        # Get current user
         current_user = frappe.session.user if hasattr(
             frappe, 'session') else None
         payload, settings = validate_token(
             token, signature, frappe.local.request_ip)
         sso_email = payload['email'].lower()
-        if current_user != sso_email:
-            # Logout the current user
-            if current_user is not None or current_user == "Guest":
-                LoginManager().logout()
-            user, settings = sso_authenticate(
-                token, signature, frappe.local.request_ip, return_settings=True)
+
+        # If a different user is logged in, log them out
+        if current_user and current_user != 'Guest' and current_user != sso_email:
+            LoginManager().logout()
+
+        # Always run SSO login logic to refresh session/cookies
+        user, settings = sso_authenticate(
+            token, signature, frappe.local.request_ip, return_settings=True)
 
         redirect_url = settings.redirect_after_login or '/app'
         frappe.local.response["type"] = "redirect"
