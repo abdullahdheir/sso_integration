@@ -18,7 +18,8 @@ def sso_login(token, signature):
         sso_email = payload['email'].lower()
         if current_user != sso_email:
             # Logout the current user
-            LoginManager().logout()
+            if current_user is not None or current_user == "Guest":
+                LoginManager().logout()
             user, settings = sso_authenticate(
                 token, signature, frappe.local.request_ip, return_settings=True)
 
