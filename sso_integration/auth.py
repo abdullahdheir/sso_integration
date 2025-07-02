@@ -173,19 +173,8 @@ def assign_integrations(user, payload, settings):
 
 def login_user(user, password=None):
     frappe.set_user(user.email)
-    frappe.local.session_obj = Session(
-        user=user.email, resume=False, full_name=user.full_name, user_type=user.user_type)
-    frappe.local.session = frappe.local.session_obj.data
-
-    frappe.local.session.data['user_type'] = user.user_type
-    frappe.local.session.data['full_name'] = user.full_name
-
-    frappe.local.cookie_manager.init_cookies()
-    frappe.local.cookie_manager.set_cookie("full_name", user.full_name)
-    frappe.local.cookie_manager.set_cookie("user_id", user.email)
-    frappe.local.cookie_manager.set_cookie(
-        "user_image", getattr(user, "user_image", "") or "")
-
+    session_data = frappe.local.session_obj.data.data
+    LoginManager.login_as(user, session_end=session_data.session_end, audit_user=session_data.audit_user)
     frappe.db.commit()
 
 

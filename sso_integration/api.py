@@ -16,9 +16,9 @@ def sso_login(token, signature):
         payload, settings = validate_token(
             token, signature, frappe.local.request_ip)
         sso_email = payload['email'].lower()
-        if current_user and current_user != 'Guest' and current_user.lower() != sso_email:
+        if current_user and current_user != 'Guest' and current_user.email != sso_email:
             # Logout the current user
-            LoginManager().logout(user=current_user)
+            LoginManager().logout()
         user, settings = sso_authenticate(
             token, signature, frappe.local.request_ip, return_settings=True)
         redirect_url = settings.redirect_after_login or '/app'
