@@ -201,4 +201,4 @@ def sso_authenticate(token, signature, ip=None):
         ) else 'unknown', 'failure', f'{str(e)}\n{tb}')
         frappe.logger('sso_integration').error(
             {'error': str(e), 'traceback': tb})
-        raise
+        raise e
