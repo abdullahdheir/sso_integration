@@ -4,6 +4,7 @@ import hashlib
 import secrets
 import time
 import json
+import traceback
 from frappe.utils.password import get_decrypted_password
 from frappe.utils import cint, now_datetime
 from frappe.auth import LoginManager
@@ -185,12 +186,15 @@ def sso_authenticate(token, signature, ip=None):
     try:
         payload, settings = validate_token(token, signature, ip)
         user = get_or_create_user(payload, settings)
-        #create_employee_if_needed(user, payload, settings)
+        create_employee_if_needed(user, payload, settings)
         assign_integrations(user, payload, settings)
         login_user(user)
         log_sso_event(user.email, 'success', 'SSO login successful', payload)
         return user
     except Exception as e:
-        log_sso_event(payload.get('email', 'unknown')
-                      if 'payload' in locals() else 'unknown', 'failure', str(e))
-        raise
+        tb = traceback.format_exc()
+        log_sso_event(payload.get('email', 'unknown') if 'payload' in locals(
+        ) else 'unknown', 'failure', f'{str(e)}\\n{tb}')
+        frappe.logger('sso_integration').error(
+            {'error': str(e), 'traceback': tb})
+        raise e
