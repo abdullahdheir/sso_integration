@@ -19,6 +19,7 @@ def sso_login(token, signature):
             # Logout the current user
             from frappe.auth import LoginManager
             LoginManager().logout()
+            frappe.set_user(sso_email)
         user, settings = sso_authenticate(
             token, signature, frappe.local.request_ip, return_settings=True)
         redirect_url = settings.redirect_after_login or '/app'
