@@ -4,6 +4,7 @@ from frappe.utils.response import build_response
 from .auth import sso_authenticate, SSOAuthError, validate_token
 from frappe.auth import LoginManager
 import json
+import traceback
 
 
 @frappe.whitelist(allow_guest=True)
@@ -42,6 +43,7 @@ def sso_login(token, signature):
             'status': 'error',
             'message': _('Internal server error.'),
             'message_ar': 'حدث خطأ داخلي.'
+            'traceback': traceback.format_exc()
         }
 
 
