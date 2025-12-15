@@ -42,7 +42,7 @@ def sso_login(token, signature):
         return {
             'status': 'error',
             'message': _('Internal server error.'),
-            'message_ar': 'حدث خطأ داخلي.'
+            'message_ar': 'حدث خطأ داخلي.',
             'traceback': traceback.format_exc()
         }
 
