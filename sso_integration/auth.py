@@ -136,6 +136,7 @@ def create_employee_if_needed(user, payload, settings):
     emp.date_of_birth = payload.get('date_of_birth', '2000-01-01')
     emp.date_of_joining = payload.get(
         'date_of_joining', frappe.utils.nowdate())
+    emp.custom_daily_working_hours = payload.get('custom_daily_working_hours') or 8
     emp.insert(ignore_permissions=True)
     frappe.db.commit()
 
