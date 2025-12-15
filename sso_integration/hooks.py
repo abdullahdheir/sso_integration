@@ -141,8 +141,8 @@ after_install = "sso_integration.install.after_install"
 
 doc_events = {
     "User": {
-        "before_insert": "sso_integration.sso_integration.user_events.before_insert",
-        "after_insert": "sso_integration.sso_integration.user_events.after_insert"
+        "before_insert": "sso_integration.user_events.before_insert",
+        "after_insert": "sso_integration.user_events.after_insert"
     }
 }
 
