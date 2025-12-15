@@ -112,6 +112,9 @@ def get_or_create_user(payload, settings):
     user_doc.insert(ignore_permissions=True)
     if settings.default_role:
         user_doc.add_roles(settings.default_role)
+	else:
+		# مثال: إضافة Employee role لو موجود HR
+		user_doc.add_roles('Employee')
     frappe.db.commit()
     return user_doc, random_password
 
